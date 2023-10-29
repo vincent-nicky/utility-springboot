@@ -2,51 +2,55 @@ package com.wsj.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wsj.Utils.RedissonLockUtil;
 import com.wsj.mapper.GoodsMapper;
 import com.wsj.model.Goods;
 import com.wsj.service.GoodsService;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.TimeUnit;
+
 /**
-* @author 86178
-* @description 针对表【goods】的数据库操作Service实现
-* @createDate 2023-10-29 00:41:26
-*/
+ * @author 86178
+ * @description 针对表【goods】的数据库操作Service实现
+ * @createDate 2023-10-29 00:41:26
+ */
 @Service
+@Slf4j
 public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods>
-    implements GoodsService {
+        implements GoodsService {
+
+    @Autowired
+    private RedissonLockUtil redissonLockUtil;
 
     @Override
-    public void doFlashSale(long userId, long goodsId) {
-        //Goods goods = goodsService.getById(1);
-        //if (goods.getCount() == 0) {
-        //    System.out.println("来晚了，商品已被抢空！");
+    public boolean doSK(long userId, long goodsId) {
+
+        // 不结合分布式锁
+        //Goods goods = this.getById(1);
+        //if (goods.getCount() <= 0) {
+        //    return false;
         //} else {
-        //    // 这里还应该检查该用户是否已经抢购过
         //    UpdateWrapper<Goods> updateWrapper = new UpdateWrapper<>();
         //    updateWrapper.set("count", goods.getCount() - 1);
-        //    goodsService.update(updateWrapper);
-        //    System.out.println("秒杀成功！");
+        //    return this.update(updateWrapper);
         //}
 
-        //String redissonLock = "flashSaleLock-userId:" + userId;
-        //String flashSaleResult = redissonLockUtil.redissonLock(redissonLock, () -> {
-        //    // 模拟一些业务逻辑（只能有一个线程可执行）
-        //    Goods goods = goodsService.getById(1);
-        //    if(goods.getCount() == 0){
-        //        return "来晚了，商品已被抢空！";
-        //    } else {
-        //        // 这里还应该检查该用户是否已经抢购过
-        //        UpdateWrapper<Goods> updateWrapper = new UpdateWrapper<>();
-        //        updateWrapper.set("count", goods.getCount() - 1);
-        //        goodsService.update(updateWrapper);
-        //        return "秒杀成功！";
-        //    }
-        //});
-        //System.out.println(flashSaleResult);
+        // 结合分布式锁
+        String lockKey = "seckill:RedissonLock:orderId:" + userId + "-sk-" + goodsId;
+        return redissonLockUtil.redissonLock(lockKey, 5000, 10000, () -> {
+            Goods goods = this.getById(1);
+            if (goods.getCount() <= 0) {
+                return false;
+            } else {
+                UpdateWrapper<Goods> updateWrapper = new UpdateWrapper<>();
+                updateWrapper.set("count", goods.getCount() - 1);
+                return this.update(updateWrapper);
+            }
+        });
     }
 }
-
-
-
-

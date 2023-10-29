@@ -1,4 +1,4 @@
-package com.wsj.model.dto;
+package com.wsj.learningredis.model.dto;
 
 import lombok.Data;
 

@@ -2,9 +2,24 @@ server:
   port: 8103
 spring:
   application:
-    name: learning-thread-pool
+    name: learning-redis
   redis:
     host: 192.168.50.129
     port: 6379
     database: 5
     password: 123456
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.50.129:3306/learning_flash_sale
+    username: root
+    password: 123456
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: false
+  #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDelete
+      logic-delete-value: 1
+      logic-not-delete-value: 0

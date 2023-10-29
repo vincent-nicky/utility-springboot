@@ -300,22 +300,34 @@ return redissonLockUtil.redissonDistributedLocks(redissonLock, () -> {
 
 ```java
 package com.wsj.learningredis.Utils;
+
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+
 @Component
 @Slf4j
 public class RedissonLockUtil {
+
     @Autowired
     private RedissonClient redissonClient;
-    public <T> T redissonLock(String lockName, Supplier<T> supplier) {
+
+    /**
+     * @param lockName 锁的唯一识别
+     * @param waitTime 线程的等待时间（注意时间的单位）
+     * @param keepTime 线程持有锁的最大时间（注意时间的单位）
+     * @param supplier 执行
+     * @return 执行结果
+     */
+    public <T> T redissonLock(String lockName,long waitTime,long keepTime, Supplier<T> supplier) {
         RLock rLock = redissonClient.getLock(lockName);
         try {
-            boolean isLocked = rLock.tryLock(0, -1, TimeUnit.MILLISECONDS);
+            boolean isLocked = rLock.tryLock(waitTime, keepTime, TimeUnit.MILLISECONDS);
             if (isLocked) {
                 return supplier.get();
             }
@@ -329,7 +341,6 @@ public class RedissonLockUtil {
         }
     }
 }
-
 ```
 
 测试
@@ -359,12 +370,12 @@ public class RedissonLockUtilTest {
     @Test
     void test01() {
         String redissonLock = "userId-1";
-        System.out.println( redissonLockUtil.redissonLock(redissonLock, () -> "成功执行"));
+        System.out.println( redissonLockUtil.redissonLock(redissonLock, 0, -1, () -> "成功执行"));
     }
     @Test
     void test02() {
         String redissonLock = "userId-1";
-        Integer sum =  redissonLockUtil.redissonLock(redissonLock, () -> {
+        Integer sum =  redissonLockUtil.redissonLock(redissonLock, 0, -1, () -> {
             // 模拟一些业务逻辑（只能有一个线程可执行）
             int sumR = 0;
             for (int i = 0; i < 10; i++) { sumR++; }
@@ -387,8 +398,6 @@ public class RedissonLockUtilTest {
     }
 }
 ```
-
-
 
 ## 三、分布式限流
 
@@ -470,6 +479,145 @@ class RedisLimiterManagerTest {
     }
 }
 ```
+
+## 四、秒杀
+
+可结合缓存、锁、限流
+
+秒杀的业务
+
+```java
+package com.wsj.learningredis.service.impl;
+
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wsj.learningredis.Utils.RedissonLockUtil;
+import com.wsj.learningredis.manager.RedisLimiterManager;
+import com.wsj.learningredis.mapper.GoodsMapper;
+import com.wsj.learningredis.model.Goods;
+import com.wsj.learningredis.service.GoodsService;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.concurrent.TimeUnit;
+
+/**
+ * @author 86178
+ * @description 针对表【goods】的数据库操作Service实现
+ * @createDate 2023-10-29 00:41:26
+ */
+@Service
+@Slf4j
+public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods>
+        implements GoodsService {
+
+    @Autowired
+    private RedissonClient redissonClient;
+    @Autowired
+    private RedissonLockUtil redissonLockUtil;
+    @Autowired
+    private RedisLimiterManager redisLimiterManager;
+    @Override
+    public boolean doSK(long userId, long goodsId) {
+        // 做限流（可选）
+        //redisLimiterManager.doRateLimit("limit:" + userId);
+        
+        //return doSKDefault(userId,goodsId);
+        //return doSKByLock(userId,goodsId);
+        return doSKByLockUtil(userId,goodsId);
+    }
+
+    private boolean doSKDefault(long userId, long goodsId) {
+        Goods goods = this.getById(goodsId);
+        if (goods.getCount() == 0) {
+            return false;
+        } else {
+            // 这里还应该检查该用户是否已经抢购过
+            UpdateWrapper<Goods> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.set("count", goods.getCount() - 1);
+            return this.update(updateWrapper);
+        }
+    }
+
+    private boolean doSKByLock(long userId, long goodsId) {
+        String lockKey = "seckill:RedissonLock:orderId:" + userId + "-sk-" +goodsId;
+        RLock rLock = redissonClient.getLock(lockKey);
+        try {
+            // 尝试加锁，每个线程拿不到锁的时候最多等待3秒，每个线程的锁最长可持续20秒
+            boolean flag = rLock.tryLock(3, 20, TimeUnit.SECONDS);
+            if (flag) {
+                return doSKDefault(userId,goodsId);
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("未知错误");
+        } finally {
+            if (rLock.isLocked()) {
+                if (rLock.isHeldByCurrentThread()) {
+                    rLock.unlock();
+                }
+            }
+        }
+    }
+
+    private boolean doSKByLockUtil(long userId, long goodsId) {
+        String lockKey = "seckill:RedissonLock:orderId:" + userId + "-sk-" +goodsId;
+        return redissonLockUtil.redissonLock(lockKey,5000,10000, () -> doSKDefault(userId,goodsId));
+    }
+}
+```
+
+测试
+
+```java
+package com.wsj.learningredis;
+import com.wsj.learningredis.service.GoodsService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
+@SpringBootTest
+public class RedissonLockSKTest {
+    private ExecutorService executorService = new ThreadPoolExecutor(
+            24,
+            100,
+            10,
+            TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(10000),
+            Executors.defaultThreadFactory(),
+            new ThreadPoolExecutor.CallerRunsPolicy()
+    );
+    @Autowired
+    private GoodsService goodsService;
+    @Test
+    void testSK() {
+        // 模拟多个服务器同时执行一个任务
+        List<CompletableFuture<Void>> futureList = new ArrayList<>();
+        for (int i = 0; i < 20; i++) {
+            // 异步执行
+            System.out.println("开始秒杀");
+            futureList.add(CompletableFuture.runAsync(() ->{
+                if(goodsService.doSK(1,1)){
+                    System.out.println("秒杀成功！");
+                }else{
+                    System.out.println("来晚了，秒杀失败！");
+                }
+            }, executorService));
+        }
+        CompletableFuture.allOf(futureList.toArray(new CompletableFuture[]{})).join();
+    }
+}
+```
+
+
+
+
 
 
 

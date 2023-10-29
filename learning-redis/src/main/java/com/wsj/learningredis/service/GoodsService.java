@@ -1,7 +1,7 @@
-package com.wsj.service;
+package com.wsj.learningredis.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.wsj.model.Goods;
+import com.wsj.learningredis.model.Goods;
 
 /**
 * @author 86178

@@ -1,6 +1,6 @@
-package com.wsj;
+package com.wsj.learningredis;
 
-import com.wsj.controller.FlashSaleController;
+import com.wsj.learningredis.service.GoodsService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,8 +10,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 @SpringBootTest
-public class FlashSaleMessageDTOTest {
-
+public class RedissonLockSKTest {
     private ExecutorService executorService = new ThreadPoolExecutor(
             24,
             100,
@@ -23,21 +22,24 @@ public class FlashSaleMessageDTOTest {
     );
 
     @Autowired
-    private FlashSaleController flashSaleController;
+    private GoodsService goodsService;
 
-    // 还需结合消息队列
+    // 不结合消息队列
     @Test
-    void testMain() {
+    void testSK() {
         // 模拟多个服务器同时执行一个任务
         List<CompletableFuture<Void>> futureList = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 20; i++) {
             // 异步执行
-            System.out.println("开始抢锁");
+            System.out.println("开始秒杀");
             futureList.add(CompletableFuture.runAsync(() ->{
-                flashSaleController.flashSaleTest(1,1);
+                if(goodsService.doSK(1,1)){
+                    System.out.println("秒杀成功！");
+                }else{
+                    System.out.println("来晚了，秒杀失败！");
+                }
             }, executorService));
         }
         CompletableFuture.allOf(futureList.toArray(new CompletableFuture[]{})).join();
-
     }
 }

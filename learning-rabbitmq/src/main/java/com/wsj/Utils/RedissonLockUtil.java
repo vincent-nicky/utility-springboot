@@ -16,10 +16,17 @@ public class RedissonLockUtil {
     @Autowired
     private RedissonClient redissonClient;
 
-    public <T> T redissonLock(String lockName, Supplier<T> supplier) {
+    /**
+     * @param lockName 锁的唯一识别
+     * @param waitTime 线程的等待时间
+     * @param keepTime 线程持有锁的最大时间
+     * @param supplier 执行
+     * @return 执行结果
+     */
+    public <T> T redissonLock(String lockName,long waitTime,long keepTime, Supplier<T> supplier) {
         RLock rLock = redissonClient.getLock(lockName);
         try {
-            boolean isLocked = rLock.tryLock(0, -1, TimeUnit.MILLISECONDS);
+            boolean isLocked = rLock.tryLock(waitTime, keepTime, TimeUnit.MILLISECONDS);
             if (isLocked) {
                 return supplier.get();
             }

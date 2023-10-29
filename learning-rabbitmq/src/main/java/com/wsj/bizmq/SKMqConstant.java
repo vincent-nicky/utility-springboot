@@ -1,6 +1,6 @@
 package com.wsj.bizmq;
 
-public interface FlashSaleMqConstant {
+public interface SKMqConstant {
 
     String FLASH_SALE_EXCHANGE = "flashSale_exchange";
 

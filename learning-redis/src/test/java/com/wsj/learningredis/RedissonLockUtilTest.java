@@ -28,13 +28,13 @@ public class RedissonLockUtilTest {
     @Test
     void test01() {
         String redissonLock = "userId-1";
-        System.out.println( redissonLockUtil.redissonLock(redissonLock, () -> "成功执行"));
+        System.out.println( redissonLockUtil.redissonLock(redissonLock, 100,200,() -> "成功执行"));
     }
 
     @Test
     void test02() {
         String redissonLock = "userId-1";
-        Integer sum =  redissonLockUtil.redissonLock(redissonLock, () -> {
+        Integer sum =  redissonLockUtil.redissonLock(redissonLock, 100,200,() -> {
             // 模拟一些业务逻辑（只能有一个线程可执行）
             int sumR = 0;
             for (int i = 0; i < 10; i++) {

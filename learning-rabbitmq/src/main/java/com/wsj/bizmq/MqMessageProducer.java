@@ -1,6 +1,5 @@
 package com.wsj.bizmq;
 
-import com.wsj.model.dto.FlashSaleMessageDTO;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
@@ -15,8 +14,8 @@ public class MqMessageProducer {
     /**
      * 发送消息
      */
-    public void sendFlashSaleMessage(String flashSaleMessage) {
-        rabbitTemplate.convertAndSend(FlashSaleMqConstant.FLASH_SALE_EXCHANGE, FlashSaleMqConstant.FLASH_SALE_ROUTING_KEY, flashSaleMessage);
+    public void sendSKMessage(String flashSaleMessage) {
+        rabbitTemplate.convertAndSend(SKMqConstant.FLASH_SALE_EXCHANGE, SKMqConstant.FLASH_SALE_ROUTING_KEY, flashSaleMessage);
     }
 
 }
