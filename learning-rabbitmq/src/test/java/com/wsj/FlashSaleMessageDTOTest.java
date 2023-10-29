@@ -1,6 +1,6 @@
-package com.wsj.learningredis;
+package com.wsj;
 
-import com.wsj.learningredis.controller.FlashSaleController;
+import com.wsj.controller.FlashSaleController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 @SpringBootTest
-public class FlashSaleTest {
+public class FlashSaleMessageDTOTest {
 
     private ExecutorService executorService = new ThreadPoolExecutor(
             24,
@@ -34,7 +34,7 @@ public class FlashSaleTest {
             // 异步执行
             System.out.println("开始抢锁");
             futureList.add(CompletableFuture.runAsync(() ->{
-                flashSaleController.flashSaleTest(1);
+                flashSaleController.flashSaleTest(1,1);
             }, executorService));
         }
         CompletableFuture.allOf(futureList.toArray(new CompletableFuture[]{})).join();

@@ -1,7 +1,7 @@
-package com.wsj.learningredis.service;
+package com.wsj.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.wsj.learningredis.model.Goods;
+import com.wsj.model.Goods;
 
 /**
 * @author 86178
@@ -9,5 +9,7 @@ import com.wsj.learningredis.model.Goods;
 * @createDate 2023-10-29 00:41:26
 */
 public interface GoodsService extends IService<Goods> {
+
+    void doFlashSale(long userId, long goodsId);
 
 }

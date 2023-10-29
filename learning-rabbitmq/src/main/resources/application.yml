@@ -1,5 +1,5 @@
 server:
-  port: 8102
+  port: 8104
 spring:
   application:
     name: learning-thread-pool
@@ -7,6 +7,16 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://192.168.50.129:3306/learning_flash_sale
     username: root
+    password: 123456
+  redis:
+    host: 192.168.50.129
+    port: 6379
+    database: 6
+    password: 123456
+  rabbitmq:
+    host: 192.168.50.129
+    port: 5672
+    username: admin
     password: 123456
 
 mybatis-plus:

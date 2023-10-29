@@ -1,4 +1,4 @@
-package com.wsj.learningredis.model;
+package com.wsj.model;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;

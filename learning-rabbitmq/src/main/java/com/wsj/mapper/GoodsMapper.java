@@ -1,7 +1,7 @@
-package com.wsj.learningredis.mapper;
+package com.wsj.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.wsj.learningredis.model.Goods;
+import com.wsj.model.Goods;
 
 /**
 * @author 86178
