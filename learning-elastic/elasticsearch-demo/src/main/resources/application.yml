@@ -1,0 +1,18 @@
+# datasource
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.50.129:3306/learning_es_goods
+    username: root
+    password: 123456
+
+# mybatis
+mybatis:
+  mapper-locations: classpath:/mapper/*Dao.xml
+  type-aliases-package: com.wsj.entity
+
+# 这是自定义属性，不是SpringBoot整合ES提供
+# 需要在配置类读取这些属性值来建立高级客户端连接
+elasticsearch1:
+  host: 192.168.50.129
+  port: 9200

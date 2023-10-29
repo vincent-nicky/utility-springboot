@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wsj.dao.mapper.GoodsMapper">
+
+    <resultMap id="BaseResultMap" type="com.wsj.entity.domain.Goods">
+            <result property="id" column="id" jdbcType="DOUBLE"/>
+            <result property="title" column="title" jdbcType="VARCHAR"/>
+            <result property="price" column="price" jdbcType="DECIMAL"/>
+            <result property="stock" column="stock" jdbcType="DOUBLE"/>
+            <result property="saleNum" column="saleNum" jdbcType="DOUBLE"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="categoryName" column="categoryName" jdbcType="VARCHAR"/>
+            <result property="brandName" column="brandName" jdbcType="VARCHAR"/>
+            <result property="spec" column="spec" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,title,price,
+        stock,saleNum,createTime,
+        categoryName,brandName,spec
+    </sql>
+
+    <select id="listGoodsWithDelete" resultType="com.wsj.entity.domain.Goods">
+        select *
+        from goods
+        where createTime >= #{minCreateTime}
+    </select>
+</mapper>
