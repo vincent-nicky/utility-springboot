@@ -2,7 +2,7 @@
 
 1、[重置nacos密码](https://github.com/vincent-nicky/test-springboot/blob/master/test-main/src/test/java/com/wsj/apisingle/NacosPasswordTest.java)
 
-2、[smms上传与删除](https://github.com/vincent-nicky/test-springboot/blob/master/test-main/src/test/java/com/wsj/apisingle/SmmsMyTest.java)、[sdk的使用](https://github.com/vincent-nicky/test-springboot/blob/master/test-main/src/test/java/com/wsj/apisingle/SmmsSDKTest.java)
+2、[smms上传与删除](https://github.com/vincent-nicky/test-springboot/blob/master/test-main/src/test/java/com/wsj/apisingle/SmmsMyTest.java) & [sdk的使用](https://github.com/vincent-nicky/test-springboot/blob/master/test-main/src/test/java/com/wsj/apisingle/SmmsSDKTest.java)
 
 # 二、大模块
 
@@ -12,4 +12,6 @@
 
 3、[Easy Excel](https://github.com/vincent-nicky/utility-springboot/tree/master/learning-EasyExcel)
 
-4、[redis & redisson](https://github.com/vincent-nicky/utility-springboot/tree/master/learning-redis)
+4、[redis & redisson & 商品秒杀（限流+分布式锁）](https://github.com/vincent-nicky/utility-springboot/tree/master/learning-redis)
+
+5、[rabbitmq & 商品秒杀（消息队列+限流+分布式锁）](https://github.com/vincent-nicky/utility-springboot/tree/master/learning-rabbitmq)
